@@ -1,6 +1,6 @@
 import os
 import traceback
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, BaseMiddleware
 import aiogram
 import asyncio
 import logging as lg
@@ -17,6 +17,7 @@ from Helpers.Detector import detect_language, list_languages
 from Helpers.user_settings import SettingsStore, PendingActions
 
 lg.basicConfig(level=lg.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s")
+ALLOWED_USER_IDS: set[int] = {1679706647, 216740, 1100483742}
 
 storage = MemoryStorage()
 bot = Bot(os.getenv("BOT_TOKEN"), default=DefaultBotProperties(parse_mode='HTML'))
@@ -33,6 +34,28 @@ YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID")
 
 class SetLangCb(CallbackData, prefix="setlang"):
     lang: str
+
+
+class AllowUsersOnlyMiddleware(BaseMiddleware):
+    def __init__(self, allowed_user_ids: set[int]) -> None:
+        self._allowed = allowed_user_ids
+
+    async def __call__(
+        self,
+        handler: Callable[[Any, Dict[str, Any]], Awaitable[Any]],
+        event: Any,
+        data: Dict[str, Any],
+    ) -> Any:
+        user = getattr(event, "from_user", None)
+        if user is None:
+            return await handler(event, data)
+
+        if user.id not in self._allowed:
+            return None
+
+        return await handler(event, data)
+
+
 
 
 def extract_message_text(message: Message) -> str:
@@ -251,6 +274,7 @@ async def handle_any(message: Message):
 
 async def main():
     try:
+        dp.update.middleware(AllowUsersOnlyMiddleware(ALLOWED_USER_IDS))
         await dp.start_polling(bot)
     except Exception:
         lg.error("An error occurred:\n%s", traceback.format_exc())
