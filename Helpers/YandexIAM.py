@@ -7,8 +7,7 @@ import yandexcloud
 from yandex.cloud.iam.v1.iam_token_service_pb2 import (CreateIamTokenRequest)
 from yandex.cloud.iam.v1.iam_token_service_pb2_grpc import IamTokenServiceStub
 
-key_path = os.path.join(os.path.dirname(__file__), '../key.json')
-
+key_path = '/app/iam-key/key.json'
 
 def openfile():
     with open(key_path, 'r') as f:

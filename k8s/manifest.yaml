@@ -7,7 +7,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: translator-bot-config
-  namespace: translator-bot
+  namespace: other-projects
 data:
   TARGET_LANGUAGE: "en"
   SOURCE_LANGUAGE: "ru"
@@ -16,7 +16,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: translator-bot
-  namespace: translator-bot
+  namespace: other-projects
 spec:
   replicas: 1
   selector:
@@ -37,7 +37,7 @@ spec:
               readOnly: true
           envFrom:
           - secretRef:
-              name: translatorbot
+              name: translatebot
           command: ["sh", "-c", "python3 translator-bot.py"]
           resources:
             requests:
